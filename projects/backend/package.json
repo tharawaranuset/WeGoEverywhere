@@ -39,7 +39,7 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.4",
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.44.7",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.6",
     "nodemon": "^3.1.10",
