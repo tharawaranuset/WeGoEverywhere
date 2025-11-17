@@ -32,7 +32,7 @@ const FormSelect = React.forwardRef<HTMLSelectElement, Props>(
             ref={ref}
             id={selectId}
             name={name}
-            // defaultValue={defaultValue}
+            defaultValue={defaultValue}
             className={cn(
               "w-full rounded-3xl border border-black",
               "py-0 px-4.5 text-[15px] bg-white",

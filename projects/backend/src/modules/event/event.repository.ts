@@ -175,4 +175,11 @@ export class EventRepository {
       currentParticipants: joinedCounts[event.eventId] || 0,
     }));
   }
+  async getParticipation(eventid : number):Promise<number[]>{
+    const joinedRows = await this.db
+      .select()
+      .from(schema.joined)
+      .where(eq(schema.joined.eventId, eventid));
+    return joinedRows.map((row) => row.userId);
+  }
 }

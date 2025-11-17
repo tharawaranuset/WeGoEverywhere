@@ -51,7 +51,7 @@ export function formToDbShape(fd: FormData) {
     .getAll("categories")
     .flatMap((v) => (typeof v === "string" ? [v] : []));
 
-  const file = fd.get("eventPhotoFile");
+  const file = fd.get("eventPhoto");
   console.log("formToDbShape file instanceof File", file instanceof File);
   console.log("dto.file", file);
 

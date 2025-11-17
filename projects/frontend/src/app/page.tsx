@@ -29,10 +29,15 @@ export default function Home() {
 
   const router = useRouter();
 
-  // Navigate to event detail page
+  // Navigate to event detail or edit page based on organizer
   const handleEventClick = (eventId: number | string) => {
-    router.push(`/event/${eventId}`);
-  };
+    const clickedEvent = events.find(e => e.eventId === eventId);
+    if (clickedEvent && user && clickedEvent.userId === user.userId) {
+      router.push(`/event/${eventId}/edit`);
+    } else {
+      router.push(`/event/${eventId}`);
+    }
+  } 
 
   const fetchUser = async () => {
     try {

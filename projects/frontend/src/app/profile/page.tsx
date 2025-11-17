@@ -12,6 +12,8 @@ import { AuthService, UserService } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import NotificationBell from "@/components/notification/NotificationBell";
+
 
 export default function ProfilePage() {
     const router = useRouter();

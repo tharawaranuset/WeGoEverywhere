@@ -10,6 +10,7 @@ import { EventRepository } from './event.repository';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { UserService } from '../users/users.service';
+import { NotificationGateway } from '@backend/src/modules/notification/notification.gateway'
 
 function sanitizeFilename(name: string) {
   return name.replace(/[^\\w.\\-]+/g, '_');
@@ -21,6 +22,7 @@ export class EventService {
     private readonly eventRepo: EventRepository,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async unjoinEvent(eventId: number, userId: number) {
@@ -28,7 +30,23 @@ export class EventService {
   }
 
   async joinEvent(eventId: number, userId: number) {
-    return this.eventRepo.joinEvent(eventId, userId);
+    const event = await this.eventRepo.findById(eventId);
+    const user = await this.userService.findById(userId);
+    const eventOwnerId = event.userId;
+    try{
+      const joined = await this.eventRepo.joinEvent(eventId, userId);
+      await this.notificationGateway.broadcastNotification(
+          [eventOwnerId!]
+        ,{
+          title : "User have join your event",
+          fromService: 'event',
+          message : `${user?.firstName} ${user?.lastName} joined your event "${event.name}".`,
+
+        });
+      return joined;
+    }catch(error){
+      throw error;
+    }
   }
 
   private assertCategories(categories: unknown) {
@@ -131,6 +149,28 @@ export class EventService {
         } catch {}
       }
 
+    const eventName = (await this.eventRepo.findById(id)).name;
+    const participants = await this.eventRepo.getParticipation(id);
+    
+    if(dto.status == "deleted"){
+      await this.notificationGateway.broadcastNotification(
+          participants
+        ,{
+          title : `${eventName} is cancelled`,
+          fromService: 'event',
+          message : `${eventName} have cancelled.`,
+        });
+    }
+    else{
+      await this.notificationGateway.broadcastNotification(
+          participants
+        ,{
+          title : `${eventName} updated`,
+          fromService: 'event',
+          message : `${eventName} has new info.`,
+        });
+    }
+
       return updated;
     } catch (e) {
       if (newFsPath) {
@@ -156,7 +196,34 @@ export class EventService {
   }
 
   async updateEvent(id: number, updateEventDto: UpdateEventDto) {
-    return this.eventRepo.update(id, updateEventDto);
+    try{
+      const updated = await this.eventRepo.update(id, updateEventDto);
+      const eventName = (await this.eventRepo.findById(id)).name;
+      const participants = await this.eventRepo.getParticipation(id);
+      if(updateEventDto.status == "deleted"){
+        await this.notificationGateway.broadcastNotification(
+            participants
+          ,{
+            title : `${eventName} is cancelled`,
+            fromService: 'event',
+            message : `${eventName} have cancelled.`,
+
+          });
+      }
+      else{
+        await this.notificationGateway.broadcastNotification(
+          participants
+        ,{
+          title : `${eventName} updated`,
+          fromService: 'event',
+          message : `${eventName} has new info.`,
+
+        });
+      }
+      return updated;
+    }catch(error){
+      throw error;
+    }
   }
 
   async getEventById(id: number) {

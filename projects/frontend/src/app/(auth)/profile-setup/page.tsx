@@ -54,19 +54,20 @@ function ProfileSetupPage() {
       case 'firstName':
         if (!value) return "First name is required";
         if (value.length > 50) return "First name must be 50 characters or less";
-        if (!/^[ก-ฮA-Za-z\s]+$/.test(value)) return "First name can only contain letters and spaces";
+        if (!/^[ก-ฮA-Za-z]+$/.test(value)) return "First name can only contain letters (no spaces)";
         return null;
-      
+
       case 'lastName':
         if (!value) return "Last name is required";
         if (value.length > 50) return "Last name must be 50 characters or less";
-        if (!/^[ก-ฮA-Za-z\s]+$/.test(value)) return "Last name can only contain letters and spaces";
+        if (!/^[ก-ฮA-Za-z]+$/.test(value)) return "Last name can only contain letters (no spaces)";
         return null;
       
       case 'telephoneNumber':
-        if (value && value.length > 20) return "Phone number must be 20 characters or less";
-        if (value && !/^[0-9+\-\s()]+$/.test(value)) return "Phone number can only contain numbers, spaces, +, -, and parentheses";
-        if (value && value.replace(/[^0-9]/g, '').length < 10) return "Phone number must contain at least 10 digits";
+        if (!value) return null; // Optional field
+        if (value.length > 10) return "Phone number must be 10 digits or less";
+        // Must start with 06, 08, or 09 and be 10 digits
+        if (!/^0[689][0-9]{7,8}$/.test(value)) return "Phone number must start with 06, 08, or 09 and be 10 digits (e.g. 0812345678)";
         return null;
       
       case 'bio':
@@ -367,12 +368,12 @@ function ProfileSetupPage() {
           />
 
           <FormInput 
-            name="telephoneNumber" 
-            type="tel" 
-            label="Phone Number (Optional)" 
-            placeholder="Enter your phone number (e.g., +66 12 345 6789)" 
-            pattern="[0-9+\-\s()]+" 
-            className="bg-white border border-black" 
+            name="telephoneNumber"
+            type="tel"
+            label="Telephone"
+            placeholder="Phone Number (Optional)"
+            pattern="^0[689][0-9]{7,8}$"
+            className="bg-white border border-black"
           />
           <FormInput name="bio"  type="text" label="Bio (Optional)" placeholder="Tell us about yourself" className="bg-white border border-black" />
 

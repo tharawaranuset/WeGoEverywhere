@@ -43,6 +43,7 @@ export class NotificationGateway {
   async handleConnection(client: Socket) {
     const decoded = this.decodeJwtToken(client.handshake.headers.cookie || '');
     if (!decoded?.token) {
+      console.warn(`[Gateway] handleConnection invalid token for socket ${client.id}`);
       client.emit('error', 'Invalid token');
       return;
     }
@@ -51,6 +52,7 @@ export class NotificationGateway {
     // TODO: check expired
     client.data.user = { sub: decoded.userId };
     const userId = decoded.userId;
+  console.log(`[Gateway] handleConnection socket=${client.id} userId=${userId}`);
 
     // Send initial notification count
     this.notificationService.getNotifCount(userId)
@@ -71,6 +73,8 @@ export class NotificationGateway {
       client.emit('error', 'Invalid userId');
       return;
     }
+    
+    console.log(`[Gateway] Connected user ${userId}`);
 
     this.notificationService.getNotifs(userId, payload.limit, payload.offset)
       .then((notifs) => {
@@ -94,7 +98,7 @@ export class NotificationGateway {
 
   async broadcastNotification(
     userIds: number[],
-    templateData: { title: string; fromService: string; message: string },
+    templateData: { title: string; fromService: string; message: string; relatedId?: number },
   ): Promise<void> {
     const userNotifications: Notifications[] =
       await this.notificationService.broadcastNotification(userIds, templateData);
@@ -104,7 +108,11 @@ export class NotificationGateway {
       const sockets: Socket[] = Array.from(this.server.sockets.sockets.values())
         .filter(s => s.data.user?.sub === notif.userId);
 
-      sockets.forEach(s => s.emit('new_notification', notif));
+      console.log(`[Gateway] Emitting to user ${notif.userId} sockets=${sockets.length}`, notif.id);
+      sockets.forEach(s => s.emit('new_notification', {
+        ...notif,
+        ...(templateData.relatedId ? { relatedId: templateData.relatedId } : {}),
+      }));
     }
   }
 }

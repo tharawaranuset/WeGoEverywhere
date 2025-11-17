@@ -1,6 +1,6 @@
 "use server";
 
-import { eventFormSchema } from "@/utils/schemas";
+import { eventCreateSchema, eventUpdateSchema } from "@/utils/schemas";
 import {
   EventService,
   UserService,
@@ -41,7 +41,7 @@ export const createEventWithZod = async (
     await setOpenApiCookieHeader();
 
     const candidate = formToDbShape(formData);
-    const parsed = eventFormSchema.safeParse(candidate);
+    const parsed = eventCreateSchema.safeParse(candidate);
     if (!parsed.success) {
       const fieldErrors = mapErrorsToFormKeys(
         parsed.error.flatten().fieldErrors
@@ -102,7 +102,7 @@ export const updateEventWithZod = async (
     }
 
     const candidate = formToDbShape(formData);
-    const parsed = eventFormSchema.safeParse(candidate);
+    const parsed = eventUpdateSchema.safeParse(candidate);
     if (!parsed.success) {
       const fieldErrors = mapErrorsToFormKeys(
         parsed.error.flatten().fieldErrors

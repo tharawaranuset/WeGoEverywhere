@@ -109,9 +109,20 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
         message: undefined,
       };
 
+      // ✅ ถ้าสำเร็จ → ล้างรูปและ preview
+      if (nextState.ok) {
+        setPhotoFile(null);
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          setPreviewUrl(null);
+        }
+      }
+      // ❌ ถ้าไม่สำเร็จ → เก็บรูปและ preview ไว้
+
       return nextState;
     } catch (err) {
       console.error(err);
+      // ❌ เคส error จริง → เก็บรูปและ preview ไว้
       return {
         ok: false,
         errors: {},

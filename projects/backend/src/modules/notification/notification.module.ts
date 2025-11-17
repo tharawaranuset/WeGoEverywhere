@@ -3,10 +3,11 @@ import { NotificationRepository } from './notification.repository';
 import { NotificationService } from './notification.service';
 import { NotificationGateway } from './notification.gateway';
 import { AuthModule } from '@backend/src/core/auth/auth.module';
+import { forwardRef } from '@nestjs/common';
 
 @Module({
   imports: [
-    AuthModule
+    forwardRef(() => AuthModule),
   ],
   providers: [
     NotificationRepository,
@@ -15,7 +16,7 @@ import { AuthModule } from '@backend/src/core/auth/auth.module';
   ],
   controllers: [],
   exports: [
-    NotificationService,
+    NotificationService,NotificationGateway,
   ],
 })
 export class NotificationModule {}

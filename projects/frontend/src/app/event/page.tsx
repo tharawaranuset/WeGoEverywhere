@@ -44,57 +44,51 @@ export default function EventPage() {
     }
   };
 
-  const filterEvents = () => {
+const filterEvents = () => {
   const now = new Date();
+
   let events: Event[] = [];
 
-  // Select events based on active tab
   if (activeTab === "created") {
-    // Filter events created by the current user
     events = allEvents.filter((event) => event.userId === user.userId);
   } else if (activeTab === "attending") {
-    // Show joined events (exclude created events)
     events = joinedEvents.filter((event) => event.userId !== user.userId);
   } else if (activeTab === "history") {
-    // History can be from both created and joined
     const createdEvents = allEvents.filter((event) => event.userId === user.userId);
     const allHistoryEvents = [...createdEvents, ...joinedEvents];
-    // Remove duplicates by eventId
     events = Array.from(new Map(allHistoryEvents.map(e => [e.eventId, e])).values());
   }
 
   return events
-    // Always filter out deleted events
     .filter((event) => event.status !== 'deleted')
-    // Filter out inactive events for Attending and History tabs
     .filter((event) => {
       if (activeTab === "created") {
-        // Show all statuses for Created tab (organizer needs to see everything)
         return true;
       }
-      // For Attending and History tabs, hide inactive events
       return event.status !== 'inactive';
     })
     .filter((event) => {
-      // Combine date and time for accurate comparison
       const [hours, minutes] = event.time.split(':').map(Number);
       const eventDateTime = new Date(event.date);
       eventDateTime.setHours(hours, minutes, 0, 0);
       
       if (activeTab === "history") {
-        // Show past events (date + time has passed)
         return eventDateTime < now;
       } else {
-        // Show upcoming events (date + time is in the future)
         return eventDateTime >= now;
       }
     })
     .sort((a, b) => {
       const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
-      if (dateComparison !== 0) return dateComparison;
-      return a.time.localeCompare(b.time);
+      if (dateComparison !== 0) {
+        // History: newest first (reverse order), others: oldest first
+        return activeTab === "history" ? -dateComparison : dateComparison;
+      }
+      const timeComparison = a.time.localeCompare(b.time);
+      return activeTab === "history" ? -timeComparison : timeComparison;
     });
 };
+
 
   const handleEventClick = (eventId: number | string) => {
     if (activeTab === "created") {

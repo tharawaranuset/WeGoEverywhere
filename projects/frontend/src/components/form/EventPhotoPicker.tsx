@@ -52,6 +52,8 @@ export default function EventPhotoPicker({
   const fileRef = React.useRef<HTMLInputElement | null>(null);
   const [localUrl, setLocalUrl] = React.useState<string | null>(null);
   const [fileError, setFileError] = React.useState<string | null>(null);
+  // ใช้บังคับ remount <input type="file">
+  const [inputKey, setInputKey] = React.useState(0);
 
   const displayUrl = localUrl || value || null;
   const roundedClass = roundedToClass(rounded);
@@ -59,34 +61,51 @@ export default function EventPhotoPicker({
   const openFile = () => !disabled && fileRef.current?.click();
 
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const f = e.target.files?.[0] ?? null;
-    if (!f) {
+    const file = e.target.files?.[0] ?? null;
+
+    // 1) ไม่ได้เลือกไฟล์ หรือกด cancel
+    if (!file) {
       setLocalUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
       });
       setFileError(null);
       onChange?.(null, null);
+
+      // รีเซ็ต input โดยการ remount
+      setInputKey((k) => k + 1);
       return;
     }
-    // File size check (2MB limit)
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (f.size > maxSize) {
-      setFileError('Image size must be less than 2MB.');
+
+    // 2) เช็คขนาด (10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      setFileError("Image size must be less than 10MB.");
+
       setLocalUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
       });
       onChange?.(null, null);
+
+      // remount input ใหม่ เมื่อไฟล์ไม่ผ่าน
+      setInputKey((k) => k + 1);
       return;
     }
+
+    // 3) ผ่านเงื่อนไข → ใช้รูปนี้
     setFileError(null);
-    const url = URL.createObjectURL(f);
+
+    const url = URL.createObjectURL(file);
     setLocalUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return url;
     });
-    onChange?.(f, url);
+
+    onChange?.(file, url);
+
+    // ⭐ เพิ่มบรรทัดนี้: reset input หลังเลือกไฟล์สำเร็จ
+    setInputKey((k) => k + 1);
   };
 
   React.useEffect(() => {
@@ -141,15 +160,17 @@ export default function EventPhotoPicker({
           {linkText}
         </button>
         {fileError && (
-          <div className="mt-2 text-red-500 text-xs font-medium">{fileError}</div>
+          <div className="mt-2 text-red-500 text-xs font-medium">
+            {fileError}
+          </div>
         )}
       </div>
 
       {/* ฟิลด์ที่ส่งไปกับฟอร์ม */}
-      {/* ส่ง URL เดิมไว้เสมอ: ถ้าไม่มีไฟล์ใหม่ server จะ keep อันนี้ */}
       <input type="hidden" name={nameExisting} value={value ?? ""} />
-      {/* เลือกไฟล์ใหม่ (จะถูกส่งเฉพาะเมื่อผู้ใช้เลือกจริง ๆ) */}
+
       <input
+        key={inputKey} // ⭐ บังคับ remount เวลาเราบอกให้ reset
         ref={fileRef}
         name={nameFile}
         type="file"

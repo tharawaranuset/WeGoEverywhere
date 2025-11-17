@@ -24,8 +24,6 @@ export default function CreateEventFormClient() {
   const lastToastSigRef = useRef<string | null>(null);
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  // ใช้สำหรับบังคับ remount ตัวเลือกไฟล์ (ล้าง input file)
-  const [resetPickerSig, setResetPickerSig] = useState(0);
 
   const createWrapper = async (
     _prev: EventStateWithFields<EventActionState>,
@@ -47,18 +45,16 @@ export default function CreateEventFormClient() {
         fields: toFields(formData),
       };
 
-      // ❌ ถ้าไม่สำเร็จ → ล้างรูป
-      if (!nextState.ok) {
+      // ✅ ถ้าสำเร็จ → ล้างรูป
+      if (nextState.ok) {
         setPhotoFile(null);
-        setResetPickerSig((s) => s + 1);
       }
+      // ❌ ถ้าไม่สำเร็จ → เก็บรูปไว้ (ไม่ทำอะไร)
 
       return nextState;
     } catch (err) {
       console.error(err);
-      // ❌ เคส error จริง → ล้างรูปด้วย
-      setPhotoFile(null);
-      setResetPickerSig((s) => s + 1);
+      // ❌ เคส error จริง → เก็บรูปไว้ (ไม่ทำอะไร)
       return {
         ok: false,
         errors: {},
@@ -92,10 +88,6 @@ export default function CreateEventFormClient() {
     },
   });
 
-  const pickerKey = state.ok
-    ? "ok"
-    : `err-${Object.keys(state.errors ?? {}).join(",")}`;
-
   return (
     <form
       ref={formRef}
@@ -106,7 +98,6 @@ export default function CreateEventFormClient() {
       {/* Photo */}
       <div className="mb-4">
         <EventPhotoPicker
-          key={`picker-${resetPickerSig}`} // ⬅️ เมื่อ resetPickerSig เปลี่ยน => รีเซ็ต input
           name="eventPhoto"
           size={208}
           rounded="2xl"

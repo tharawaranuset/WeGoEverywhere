@@ -78,7 +78,7 @@ export default function EditProfilePage() {
         lastName: user.lastName || undefined,
         birthdate: user.birthdate || undefined,
         sex: user.sex || undefined,
-        telephoneNumber: user.telephoneNumber || null,
+        telephoneNumber: user.telephoneNumber || undefined,
         bio: user.bio || null,
       };
 
@@ -169,6 +169,7 @@ export default function EditProfilePage() {
               label="First name"
               defaultValue={user?.firstName || ""}
               pattern="[ก-ฮะ-๛A-Za-z\s]+"
+              onChange={(e)=> setUser({...user, firstName: e.target.value })}
               required
             />
 
@@ -178,6 +179,7 @@ export default function EditProfilePage() {
               label="Last name"
               defaultValue={user?.lastName || ""}
               pattern="[ก-ฮะ-๛A-Za-z\s]+"
+              onChange={(e) => setUser({ ...user, lastName: e.target.value })}
               required
             />
 
@@ -193,7 +195,7 @@ export default function EditProfilePage() {
                 max={today}
                 containerClassName="mb-0" 
                 defaultValue={user?.birthdate || ""}
-
+                onChange={(e) => setUser({ ...user, birthdate: e.target.value })}
                 required
                 className="pr-11 appearance-none
                           [&::-webkit-calendar-picker-indicator]:hidden
