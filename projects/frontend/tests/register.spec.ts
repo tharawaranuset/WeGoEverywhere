@@ -277,7 +277,7 @@ test('Should show browser validation for empty required email field', async ({ p
 
   test('EC1, EC4, EC14, EC17: Valid registration - should proceed to profile setup', async ({ page }) => {
     await page.goto('http://localhost:3000/register');
-    const uniqueEmail = `test${Date.now()}@example.com`;
+    const uniqueEmail = `usertest@example.com`;
     
     await page.fill('input[name="email"]', uniqueEmail);
     await page.fill('input[name="password"]', 'Password_Test55');
