@@ -85,43 +85,25 @@ export class AuthController {
   @ApiOperation({ summary: 'Github OAuth callback' })
   async githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
     const existingUser = await this.oauthUsersRepository.findByGithubId(req.user.id);
-    console.log(req.user)
+    console.log(req.user);
+    
+    const frontendUrl = this.configService.get('app.frontendUrl') || 'http://localhost:3000';
+    
     if(!existingUser){
-      const accessToken = this.authService.signJwt(req.user.id , req.user.email , 'github');
+      const accessToken = this.authService.signJwt(req.user.id, req.user.email, 'github');
       const refreshToken = this.authService.signRefreshJwt(req.user.id);
-      res.cookie('jwt', accessToken, { 
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 15 * ONE_MINUTE,
-      });
-      res.cookie('refresh_jwt', refreshToken, { 
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: ONE_WEEK,
-      });
-      const frontendUrl = this.configService.get('app.frontendUrl') || 'http://localhost:3000';
-      return res.redirect('${frontendUrl}/consent');
-    }else{
+      
+      // Redirect with tokens in URL (no cookies)
+      return res.redirect(`${frontendUrl}/consent?token=${accessToken}&refresh=${refreshToken}`);
+    } else {
       const accessToken = this.authService.signJwt(existingUser.userId);
       const refreshToken = this.authService.signRefreshJwt(existingUser.userId);
-      res.cookie('jwt', accessToken, { 
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 15 * ONE_MINUTE,
-      });
-      res.cookie('refresh_jwt', refreshToken, { 
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: ONE_WEEK,
-      });
-      const frontendUrl = this.configService.get('app.frontendUrl');
-      return res.redirect(frontendUrl);
+      
+      // Redirect to home with tokens in URL (no cookies)
+      return res.redirect(`${frontendUrl}?token=${accessToken}&refresh=${refreshToken}`);
     }
   }
+  
   @Public()
   @UseGuards(RefreshJwtGuard)
   @Post('refresh-jwt-token')
